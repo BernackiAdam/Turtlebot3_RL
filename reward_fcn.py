@@ -2,12 +2,15 @@
 
 from ast import Pass
 import math
+
+from sympy import true
 # import turtlebot_util as tbu
 import target
 import time
 import rospy
 import robot_model
 
+# zastosowane funkcje nagrody 
 
 def check_distance(robot_x, robot_y, yaw, target_x, target_y):
 
@@ -38,26 +41,15 @@ def new_target(robot_x, robot_y):
 
     return entry_distance, target_x, target_y
 
-def distance_angle(distance_dif, curr_dis, entry_dis, angle):
-    reward = 0
-    distance = entry_dis- curr_dis
-    if angle >= -1.31 and angle <= 1.31 and distance_dif >=0:
-        reward = 2**distance
-    elif distance_dif <0:
-        reward = distance_dif*3
-    else:
-        reward = -1
 
-
-    return reward
 
 def based_on_action(angle_to_goal, distance_dif, action):
     reward = 0
-    if angle_to_goal <= 0.20 and angle_to_goal >= -0.20:
+    if angle_to_goal <= 0.30 and angle_to_goal >= -0.30:
         if action == 0:
             reward+= 5
         else:
-            reward-=2
+            reward+=1
     elif angle_to_goal > 0:
         if action == 2:
             reward += 3
@@ -71,15 +63,35 @@ def based_on_action(angle_to_goal, distance_dif, action):
 
     return reward
 
+def distance_angle(distance_dif, curr_dis, entry_dis, angle):
+    reward = 1
+    distance = entry_dis- curr_dis
+    if angle >= -0.9 and angle <= 0.9 and distance_dif >=0:
+        reward = 2
+    # elif distance_dif <0:
+    #     reward = distance_dif*3
+    # else:
+    #     reward = -1
 
-def based_on_obstacle(map, action):
-    if (map[0] or map[11]) and action == 0:
-        reward = -1
-    elif (map[2] or map[3]) and action == 2:
-        reward =-1
-    elif (map[8] or map[9]) and action == 1:
-        reward =-1
-    else:
-        reward =2
+
     return reward
-# stworzyc funkcje nagrody ktora nagradza robota za dojechanie do celu i po 350 epizodach zaczyna odejmowac punkty 
+
+def based_on_obstacle(map):
+    # if (map[0] or map[11]) and action == 0:
+    #     reward = -1
+    # elif (map[2] or map[3]) and action == 2:
+    #     reward =-1
+    # elif (map[8] or map[9]) and action == 1:
+    #     reward =-1
+    # else:
+    #     reward =2
+    map_len = len(map)
+    close = False
+    reward = 7
+    for i in range(map_len):
+        # if i < int(map_len*0.16) or i > int(map_len - map_len*0.16):
+            if map[i]<reward:
+                reward = map[i]
+    if reward < 0.3:
+        close = True
+    return reward,close

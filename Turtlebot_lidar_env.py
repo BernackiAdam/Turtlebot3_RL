@@ -20,7 +20,10 @@ import robot_model
 import reward_fcn
 
 
-
+# główny plik zawierający klase uczenia zawierający funkcje inicjalizacyjna, 
+#  step będącą funkcją która wykonywana jest przy każdym epizodzie oraz funkcję reset 
+# która wykonuje się na początku procesu uczenia oraz przy każdej terminacji (termination)
+# oraz ucięciu (truncation) 
 
 
 ################################################################
@@ -59,9 +62,9 @@ rospy.Subscriber('/odom', Odometry, odom_callback)
 rospy.Subscriber('gazebo/model_states', ModelStates, target_callback)
 rospy.Subscriber("/scan", LaserScan, lidar_callback)
 
-        ################################################################
-        # klasa środowiska uczenia maszynowego
-        ################################################################
+################################################################
+# klasa środowiska uczenia maszynowego
+################################################################
 
 class Turtlebot_lidar_RL(gym.Env):
     """Custom Environment that follows gym interface."""
@@ -70,6 +73,7 @@ class Turtlebot_lidar_RL(gym.Env):
 
     def __init__(self):
         super().__init__()
+        self.lidar_sections = 48
 
         ################################################################
         # określenie rodzajów i wymiarów przestrzeni akcji i obserwacji
@@ -77,13 +81,15 @@ class Turtlebot_lidar_RL(gym.Env):
 
 
         # przestrzen obserwacji składa się z 5 elementów bedacych 
-        # pozycjami robota i celu oraz 72 elementów będących wskazaniami
-        # czujnika laserowego
+        # pozycjami robota (x,y, yaw) i celu (x, y) oraz 24 elementów będących wskazaniami
+        # najbliżej położonych punktów wykrytych przez czujnik laserowy
 
+        # przestrzen akcji (action_space) to 3 akcje (0, 1 lub 2) które może wybrac algorytm
+        
 
         self.action_space = spaces.Discrete(3)
-        self.observation_space = spaces.Box(low=-5, high=5,
-                                            shape=(5+24,), dtype=np.float32)
+        self.observation_space = spaces.Box(low=-5, high=7,
+                                            shape=(2+self.lidar_sections,), dtype=np.float32)
         self.pause = rospy.ServiceProxy("/gazebo/pause_physics", Empty)
         self.unpause = rospy.ServiceProxy("/gazebo/unpause_physics", Empty)
         self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
@@ -120,14 +126,14 @@ class Turtlebot_lidar_RL(gym.Env):
             # Ruch w prawo 
             cmd_vel = Twist()
             cmd_vel.linear.x = 0.15
-            cmd_vel.angular.z = -0.3
+            cmd_vel.angular.z = -0.45
             self.cmd_vel_pub.publish(cmd_vel)
 
         if action == 2:
             # Ruch w lewo
             cmd_vel = Twist()
             cmd_vel.linear.x = 0.15
-            cmd_vel.angular.z = 0.3
+            cmd_vel.angular.z = 0.45
             self.cmd_vel_pub.publish(cmd_vel)
 
         time.sleep(0.02)
@@ -145,20 +151,23 @@ class Turtlebot_lidar_RL(gym.Env):
         yTarget = round(yTarget, 2)
         self.yaw = round(self.yaw, 3)
 
-        _, self.colision, self.short_distance = robot_model.compress_laser_data(lidar_list)
-        self.obstacle_map = robot_model.create_obstacle_map(lidar_list)
-        self.observation = [self.robot_x, self.robot_y, self.yaw,
-                            xTarget, yTarget] + list(self.obstacle_map)
-        
-        self.observation = np.array(self.observation, dtype=np.float32)        
-
         self.angle_to_goal = robot_model.calculate_angle_to_goal(self.robot_x, self.robot_y, self.yaw,
                             xTarget, yTarget)
         self.distance_to_goal = reward_fcn.check_distance(self.robot_x, self.robot_y, self.yaw,
                             xTarget, yTarget)
 
+        _, self.colision, self.short_distance = robot_model.compress_laser_data(lidar_list)
+        self.obstacle_map = robot_model.create_obstacle_map(lidar_list, self.lidar_sections)
+        # self.observation = [self.robot_x, self.robot_y, self.yaw,
+        #                     xTarget, yTarget] + list(self.obstacle_map)
+        self.observation = [self.angle_to_goal, self.distance_to_goal] + list(self.obstacle_map)
+        
+        self.observation = np.array(self.observation, dtype=np.float32)        
+
+        
+
         ################################################################
-        # Określenie nagrody, terminacji oraz odcięcia (truncation)
+        # Określenie różnicy dystansu oraz kątu (truncation)
         ################################################################
 
         if self.new_best_distance > self.distance_to_goal:
@@ -172,33 +181,34 @@ class Turtlebot_lidar_RL(gym.Env):
         angle_diffrence = self.new_best_angle - self.angle_to_goal
     
         ##############################################################
-        # Terminacja dla robota poruszającego się po world
+        # Terminacja dla robota poruszającego się po swiecie z przeszkodami
         ##############################################################
 
-        self.reward = reward_fcn.distance_angle(distance_diffrence, 
-                                                self.distance_to_goal, 
-                                                self.entry_distance,
-                                                self.angle_to_goal)
+        self.reward, close = reward_fcn.based_on_obstacle(self.obstacle_map)
 
-        if self.colision or distance_diffrence < -0.9:
+        # self.reward = reward_fcn.distance_angle(distance_diffrence, 
+        #                                          self.distance_to_goal, 
+        #                                          self.entry_distance, 
+        #                                          self.angle_to_goal)
+        
+        if close:
+            self.reward = -5
+        if self.colision:
+            # or distance_diffrence < -0.9:
             self.truncated = True
             self.reward -= 100
-        elif self.distance_to_goal <0.2:
-            # self.entry_distance, _,_ = reward_fcn.new_target(self.robot_x, self.robot_y)
+        elif self.distance_to_goal <0.2 and self.distance_to_goal >0:
             self.terminated = True
-            self.reward += 100
+            self.reward += 1000
 
         else:
             self.terminated = False
             self.truncated = False
-        
-        if self.episode%20000==0:
-            self.terminated = True
+
         ##############################################################
-        # Terminacja dla robota poruszającego się po empty_world
+        # Terminacja dla robota poruszającego się po pustym swiecie
         ##############################################################
 
-        # self.reward = reward_fcn.based_on_dif(self.angle_to_goal, distance_diffrence)
         # self.reward = reward_fcn.based_on_action(self.angle_to_goal, distance_diffrence, action)
         
 
@@ -221,7 +231,7 @@ class Turtlebot_lidar_RL(gym.Env):
             print("Reward: {},       Angle diffrence: {}".format(round(self.reward,5), round(angle_diffrence, 5)))
             print("Distance: {},     Distance diffrence: {}".format(round(self.distance_to_goal,5), round(distance_diffrence,5)))
             print("Target x: {},     target y: {}".format(xTarget, yTarget))
-            print("Action: {}".format(action))
+            print("Action: {}        target count: {}".format(action, self.target_count))
             print("========================================================")
 
         info = {}
@@ -239,15 +249,19 @@ class Turtlebot_lidar_RL(gym.Env):
 
         self.unpause()
         self.new_best_distance = 100
+
+
         # Spawn targetu i robota dla empty_world
         # self.target_x, self.target_y = target.spawn_target() 
         # self.robot_x, self.robot_y, self.yaw = robot_model.reset_turtlebot()
 
         # Spawn targetu i robota dla areny turtlebot
         self.obstacle_map = []
-        for i in range(24):
+        self.target_count = 0
+        for i in range(self.lidar_sections):
             self.obstacle_map.append(6)
         self.target_x, self.target_y = target.spawn_target_world() 
+
         self.robot_x, self.robot_y, self.yaw = robot_model.reset_turtlebot_world()
         self.new_best_angle = 5
 
@@ -256,9 +270,14 @@ class Turtlebot_lidar_RL(gym.Env):
                                                                    self.robot_y,
                                                                    self.target_x, 
                                                                    self.target_y)
+        xTarget = target_list[0]
+        yTarget = target_list[1]
+        self.angle_to_goal = robot_model.calculate_angle_to_goal(self.robot_x, self.robot_y, self.yaw,
+                            xTarget, yTarget)
+        self.distance_to_goal = reward_fcn.check_distance(self.robot_x, self.robot_y, self.yaw,
+                            xTarget, yTarget)
         
-        self.observation = [self.robot_x, self.robot_y, self.yaw,
-                            self.target_x, self.target_y] + list(self.obstacle_map)
+        self.observation = [self.angle_to_goal, self.distance_to_goal] + list(self.obstacle_map)
         
         self.observation = np.array(self.observation, dtype=np.float32)
         

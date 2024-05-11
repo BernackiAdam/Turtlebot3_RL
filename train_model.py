@@ -13,11 +13,11 @@ from Turtlebot_lidar_env import Turtlebot_lidar_RL
 from std_srvs.srv import Empty
 
 # model wytrenowany w pustym świecie w taki sposob aby dojezdzal do punktu
-model_dir = "/home/bernacki/catkin_ws/src/turtlebot3_rl/Models/1714034212/140000.zip"
+model_dir = "/home/bernacki/catkin_ws/src/turtlebot3_rl/Models_done/40k_empty_angle_distance/1715108529_model/40000.zip"
 # model_dir = "/home/bernacki/catkin_ws/src/turtlebot3_rl/Models/DQN_V2/1713634823/148000.zip"
 
-models_dir = f"/home/bernacki/catkin_ws/src/turtlebot3_rl/Models/DQN_V2/{int(time.time())}"
-log_dir = f"/home/bernacki/catkin_ws/src/turtlebot3_rl/Logs/DQN_V2/{int(time.time())}"
+models_dir = f"/home/bernacki/catkin_ws/src/turtlebot3_rl/Models/{int(time.time())}_obs/{int(time.time())}_model"
+log_dir = f"/home/bernacki/catkin_ws/src/turtlebot3_rl/Models/{int(time.time())}_obs/{int(time.time())}_log"
 if not os.path.exists(models_dir):
     os.makedirs(models_dir)
 

@@ -63,10 +63,10 @@ def reset_turtlebot_world():
         state_msg.model_name = 'turtlebot3_burger'  # Nazwa modelu TurtleBota w symulacji Gazebo
 
         # Ustawianie losowej pozycji
-        # state_msg.pose.position.x  =-2.0  # Zakres współrzędnej x
-        # state_msg.pose.position.y  =-0.5 # Zakres współrzędnej y
-        state_msg.pose.position.x  =0.0  # Zakres współrzędnej x
-        state_msg.pose.position.y  =0.0 # Zakres współrzędnej y
+        state_msg.pose.position.x  =-2.0  # Zakres współrzędnej x
+        state_msg.pose.position.y  =-0.5 # Zakres współrzędnej y
+        # state_msg.pose.position.x  =0.0  # Zakres współrzędnej x
+        # state_msg.pose.position.y  =0.0 # Zakres współrzędnej y
         state_msg.pose.position.z = 0.0  # Ustawienie wysokości na płaszczyźnie
 
         # Resetowanie orientacji
@@ -163,15 +163,19 @@ def compress_laser_data(lidar_data):
         
     return laser_data, colision, close
 
-def create_obstacle_map(data):
+def create_obstacle_map(data, lidar_sections):
     # scan = rospy.wait_for_message('/scan', LaserScan, timeout=5)
     # data = scan.ranges
+
+    # lidar_sectons jest zmienna która decyduje o ilości sekcji 
+    # z których czujnik laserowy bierze informacje 
+
     obstacle_map = []
     index = 0
-    for i in range(24):
+    for i in range(lidar_sections):
         obstacle_map.append(6)
-        index = i*(int(len(data)/24))
-        for j in range(int(len(data)/24)):
+        index = i*(int(len(data)/lidar_sections))
+        for j in range(int(len(data)/lidar_sections)):
             if data[j+index] <obstacle_map[i]:
                 obstacle_map[i] = round(data[j+index], 3)
     # print(obstacle_map)

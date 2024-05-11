@@ -16,8 +16,8 @@ from std_srvs.srv import Empty
 
 
 
-models_dir = f"/home/bernacki/catkin_ws/src/turtlebot3_rl/Models/{int(time.time())}"
-log_dir = f"/home/bernacki/catkin_ws/src/turtlebot3_rl/Logs/{int(time.time())}"
+models_dir = f"/home/bernacki/catkin_ws/src/turtlebot3_rl/Models/{int(time.time())}/{int(time.time())}_model"
+log_dir = f"/home/bernacki/catkin_ws/src/turtlebot3_rl/Models/{int(time.time())}/{int(time.time())}_log"
 if not os.path.exists(models_dir):
     os.makedirs(models_dir)
 
@@ -29,7 +29,11 @@ env = Turtlebot_lidar_RL()
 env.reset()
 
 # model = PPO("MlpPolicy", env, verbose=1, tensorboard_log=log_dir)
-model = DQN("MlpPolicy", env, verbose=1, tensorboard_log=log_dir)
+model = DQN("MlpPolicy", 
+            env, verbose=1, 
+            tensorboard_log=log_dir, 
+            target_update_interval=10000,
+            learning_rate=0.0001)
 
 pause = rospy.ServiceProxy("/gazebo/pause_physics", Empty)
 unpause = rospy.ServiceProxy("/gazebo/unpause_physics", Empty)
