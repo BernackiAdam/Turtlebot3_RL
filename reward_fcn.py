@@ -65,14 +65,16 @@ def based_on_action(angle_to_goal, distance_dif, action):
 
 def distance_angle(distance_dif, curr_dis, entry_dis, angle):
     reward = 1
+    angle_reward = 1
     distance = entry_dis- curr_dis
-    if angle >= -0.9 and angle <= 0.9 and distance_dif >=0:
-        reward = 2
-    # elif distance_dif <0:
-    #     reward = distance_dif*3
-    # else:
-    #     reward = -1
-
+    if angle >= -0.3 and angle <= 0.3 and distance_dif >=0:
+        angle_reward = 5
+    else:
+        angle_reward = 0
+    if angle_reward != 0:
+        reward = distance * angle_reward
+    else:
+        reward = abs(angle)*-1
 
     return reward
 

@@ -184,23 +184,23 @@ class Turtlebot_lidar_RL(gym.Env):
         # Terminacja dla robota poruszającego się po swiecie z przeszkodami
         ##############################################################
 
-        self.reward, close = reward_fcn.based_on_obstacle(self.obstacle_map)
+        _, close = reward_fcn.based_on_obstacle(self.obstacle_map)
 
-        # self.reward = reward_fcn.distance_angle(distance_diffrence, 
-        #                                          self.distance_to_goal, 
-        #                                          self.entry_distance, 
-        #                                          self.angle_to_goal)
+        self.reward = reward_fcn.distance_angle(distance_diffrence, 
+                                                 self.distance_to_goal, 
+                                                 self.entry_distance, 
+                                                 self.angle_to_goal)
         
         if close:
             self.reward = -5
-        if self.colision:
-            # or distance_diffrence < -0.9:
+        if self.colision or distance_diffrence < -0.9:
             self.truncated = True
             self.reward -= 100
         elif self.distance_to_goal <0.2 and self.distance_to_goal >0:
             self.terminated = True
             self.reward += 1000
-
+        elif self.counter + 1000 <= self.episode and self.reward < 0.5:
+            self.truncated = True
         else:
             self.terminated = False
             self.truncated = False
@@ -242,27 +242,30 @@ class Turtlebot_lidar_RL(gym.Env):
         self.terminated = False
         self.truncated = False
         self.reward = 0
-        self.counter = 0
+        self.counter = self.episode
         
         # self.laser_data, self.colision , self.short_distance= robot_model.compress_laser_data(lidar_list)
 
-
+        self.obstacle_map = []
+        self.target_count = 0
         self.unpause()
         self.new_best_distance = 100
+        for i in range(self.lidar_sections):
+            self.obstacle_map.append(6)
+        
+
 
 
         # Spawn targetu i robota dla empty_world
-        # self.target_x, self.target_y = target.spawn_target() 
-        # self.robot_x, self.robot_y, self.yaw = robot_model.reset_turtlebot()
+        self.target_x, self.target_y = target.spawn_target() 
+        self.robot_x, self.robot_y, self.yaw = robot_model.reset_turtlebot()
+
 
         # Spawn targetu i robota dla areny turtlebot
-        self.obstacle_map = []
-        self.target_count = 0
-        for i in range(self.lidar_sections):
-            self.obstacle_map.append(6)
-        self.target_x, self.target_y = target.spawn_target_world() 
+        # self.target_x, self.target_y = target.spawn_target_world() 
+        # self.robot_x, self.robot_y, self.yaw = robot_model.reset_turtlebot_world()
 
-        self.robot_x, self.robot_y, self.yaw = robot_model.reset_turtlebot_world()
+
         self.new_best_angle = 5
 
         # Reset turtlebot dla world
