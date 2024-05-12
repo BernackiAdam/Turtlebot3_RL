@@ -67,8 +67,8 @@ def distance_angle(distance_dif, curr_dis, entry_dis, angle):
     reward = 1
     angle_reward = 1
     distance = entry_dis- curr_dis
-    if angle >= -0.3 and angle <= 0.3 and distance_dif >=0:
-        angle_reward = 5
+    if angle >= -1.3 and angle <= 1.3 and distance_dif >=0:
+        angle_reward = 1
     else:
         angle_reward = 0
     if angle_reward != 0:
@@ -91,7 +91,7 @@ def based_on_obstacle(map):
     close = False
     reward = 7
     for i in range(map_len):
-        # if i < int(map_len*0.16) or i > int(map_len - map_len*0.16):
+        if i < int(map_len*0.125) or i > int(map_len - map_len*0.125):
             if map[i]<reward:
                 reward = map[i]
     if reward < 0.3:

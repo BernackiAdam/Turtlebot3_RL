@@ -30,8 +30,8 @@ def spawn_target():
                 with open("/home/bernacki/catkin_ws/src/turtlebot3_rl/Scripts/target.sdf", "r") as f:
                     model_xml = f.read()
                 spawn_pose = Pose()  
-                spawn_pose.position.x = random.uniform(-5, 5)  
-                spawn_pose.position.y = random.uniform(-5, 5)  
+                spawn_pose.position.x = random.uniform(-1.5, 1.5)  
+                spawn_pose.position.y = random.uniform(-1.5, 1.5)  
                 spawn_pose.position.z = 0.1  
                 spawn_model(model_name, model_xml, " ", spawn_pose, "world")
                 return spawn_pose.position.x, spawn_pose.position.y
@@ -43,8 +43,8 @@ def spawn_target():
                 with open("/home/bernacki/catkin_ws/src/turtlebot3_rl/Scripts/target.sdf", "r") as f:
                     model_xml = f.read()
                 spawn_pose = Pose()  
-                spawn_pose.position.x = random.uniform(-5, 5)  
-                spawn_pose.position.y = random.uniform(-5, 5)  
+                spawn_pose.position.x = random.uniform(-1.5, 1.5)  
+                spawn_pose.position.y = random.uniform(-1.5, 1.5)  
                 spawn_pose.position.z = 0.1  
                 spawn_model(model_name, model_xml, " ", spawn_pose, "world")
                 return spawn_pose.position.x, spawn_pose.position.y
@@ -62,7 +62,8 @@ def spawn_target_world():
     #                     (-1.5, -2), (1.5, -2), (-2.0, -0.5)]
     # poses = [(2, 0.5), (3.8, 1), (3.8, -1.5), (1, -2),
     #          (2.5, -2.5), (0,-2)]
-    poses = [(1, 1.5),(1, 0.5), (0, 1.7), (1.5, 0.5), (1.5 ,-0.5), (0.5, -1.5)]
+    # poses = [(1, 1.5),(1, 0.5), (0, 1.7), (1.5, 0.5), (1.5 ,-0.5), (0.5, -1.5)]
+    poses = [(4,0)]
     
 
     start_time = rospy.Time.now()

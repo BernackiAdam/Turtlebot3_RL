@@ -24,8 +24,8 @@ def reset_turtlebot():
         state_msg.model_name = 'turtlebot3_burger'  # Nazwa modelu TurtleBota w symulacji Gazebo
 
         # Ustawianie losowej pozycji
-        state_msg.pose.position.x  =random.uniform(-2, 2)  # Zakres współrzędnej x
-        state_msg.pose.position.y  =random.uniform(-2, 2)  # Zakres współrzędnej y
+        state_msg.pose.position.x  =random.uniform(-1, 1)  # Zakres współrzędnej x
+        state_msg.pose.position.y  =random.uniform(-1, 1)  # Zakres współrzędnej y
         state_msg.pose.position.z = 0.0  # Ustawienie wysokości na płaszczyźnie
 
         # Resetowanie orientacji
@@ -63,10 +63,10 @@ def reset_turtlebot_world():
         state_msg.model_name = 'turtlebot3_burger'  # Nazwa modelu TurtleBota w symulacji Gazebo
 
         # Ustawianie losowej pozycji
-        state_msg.pose.position.x  =-2.0  # Zakres współrzędnej x
-        state_msg.pose.position.y  =-0.5 # Zakres współrzędnej y
-        # state_msg.pose.position.x  =0.0  # Zakres współrzędnej x
-        # state_msg.pose.position.y  =0.0 # Zakres współrzędnej y
+        # state_msg.pose.position.x  =-2.0  # Zakres współrzędnej x
+        # state_msg.pose.position.y  =-0.5 # Zakres współrzędnej y
+        state_msg.pose.position.x  =0.0  # Zakres współrzędnej x
+        state_msg.pose.position.y  =0.0 # Zakres współrzędnej y
         state_msg.pose.position.z = 0.0  # Ustawienie wysokości na płaszczyźnie
 
         # Resetowanie orientacji

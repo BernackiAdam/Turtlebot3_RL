@@ -199,7 +199,7 @@ class Turtlebot_lidar_RL(gym.Env):
         elif self.distance_to_goal <0.2 and self.distance_to_goal >0:
             self.terminated = True
             self.reward += 1000
-        elif self.counter + 1000 <= self.episode and self.reward < 0.5:
+        elif self.counter + 2000 <= self.episode and self.reward < 0.5:
             self.truncated = True
         else:
             self.terminated = False
