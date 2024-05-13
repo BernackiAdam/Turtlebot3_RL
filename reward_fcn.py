@@ -91,7 +91,7 @@ def based_on_obstacle(map):
     close = False
     reward = 7
     for i in range(map_len):
-        if i < int(map_len*0.125) or i > int(map_len - map_len*0.125):
+        if i < int(map_len*0.0833) or i > int(map_len - map_len*0.0833):
             if map[i]<reward:
                 reward = map[i]
     if reward < 0.3:

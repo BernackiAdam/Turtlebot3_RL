@@ -184,12 +184,14 @@ class Turtlebot_lidar_RL(gym.Env):
         # Terminacja dla robota poruszającego się po swiecie z przeszkodami
         ##############################################################
 
-        _, close = reward_fcn.based_on_obstacle(self.obstacle_map)
-
-        self.reward = reward_fcn.distance_angle(distance_diffrence, 
-                                                 self.distance_to_goal, 
-                                                 self.entry_distance, 
-                                                 self.angle_to_goal)
+        self.reward , close = reward_fcn.based_on_obstacle(self.obstacle_map)
+        if self.reward <=0.55 and self.distance_to_goal > 0.8:
+            self.reward = -2
+        if self.distance_to_goal <=0.6:
+            self.reward = reward_fcn.distance_angle(distance_diffrence, 
+                                                    self.distance_to_goal, 
+                                                    self.entry_distance, 
+                                                    self.angle_to_goal)
         
         if close:
             self.reward = -5
@@ -257,13 +259,13 @@ class Turtlebot_lidar_RL(gym.Env):
 
 
         # Spawn targetu i robota dla empty_world
-        self.target_x, self.target_y = target.spawn_target() 
-        self.robot_x, self.robot_y, self.yaw = robot_model.reset_turtlebot()
+        # self.target_x, self.target_y = target.spawn_target() 
+        # self.robot_x, self.robot_y, self.yaw = robot_model.reset_turtlebot()
 
 
         # Spawn targetu i robota dla areny turtlebot
-        # self.target_x, self.target_y = target.spawn_target_world() 
-        # self.robot_x, self.robot_y, self.yaw = robot_model.reset_turtlebot_world()
+        self.target_x, self.target_y = target.spawn_target_world() 
+        self.robot_x, self.robot_y, self.yaw = robot_model.reset_turtlebot_world()
 
 
         self.new_best_angle = 5

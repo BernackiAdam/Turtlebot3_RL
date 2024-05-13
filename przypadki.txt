@@ -37,3 +37,60 @@ P2. Zastosowana nagroda
 
     robot dojezdzal do celu jednak nie staral sie uzyskac jak najwyzszej nagrody 
     
+P3. Trenowany model wcześniej nauczony dojezdzania do punktu 
+
+P4. Trenowany do dojezdzania do punktu, trenowany w obrebie prostokata, funkcja nagrody:
+    reward = 1
+    angle_reward = 1
+    distance = entry_dis- curr_dis
+    if angle >= -1.3 and angle <= 1.3 and distance_dif >=0:
+        angle_reward = 1
+    else:
+        angle_reward = 0
+    if angle_reward != 0:
+        reward = distance * angle_reward
+    else:
+        reward = abs(angle)*-1
+
+    return reward
+
+P5. Wytrenowany model do dojezdzania do celu wpuszczony w środowisko z 4 przeszkodami. Funkcja nagrody:
+
+    def distance_angle(distance_dif, curr_dis, entry_dis, angle):
+    reward = 1
+    angle_reward = 1
+    distance = entry_dis- curr_dis
+    if angle >= -1.3 and angle <= 1.3 and distance_dif >=0:
+        angle_reward = 1
+    else:
+        angle_reward = 0
+    if angle_reward != 0:
+        reward = distance * angle_reward
+    else:
+        reward = abs(angle)*-1
+
+    return reward
+
+def based_on_obstacle(map):
+
+    map_len = len(map)
+    close = False
+    reward = 7
+    for i in range(map_len):
+        if i < int(map_len*0.0833) or i > int(map_len - map_len*0.0833):
+            if map[i]<reward:
+                reward = map[i]
+    if reward < 0.3:
+        close = True
+    return reward,close
+
+    ### Środowisko 
+    
+    self.reward , close = reward_fcn.based_on_obstacle(self.obstacle_map)
+        if self.reward <=0.55 and self.distance_to_goal > 0.8:
+            self.reward = -2
+        if self.distance_to_goal <=0.6:
+            self.reward = reward_fcn.distance_angle(distance_diffrence, 
+                                                    self.distance_to_goal, 
+                                                    self.entry_distance, 
+                                                    self.angle_to_goal)
